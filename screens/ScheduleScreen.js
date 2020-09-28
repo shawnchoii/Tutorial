@@ -3,10 +3,16 @@ import { StyleSheet, Text, SafeAreaView } from "react-native";
 import CourseList from "../components/CourseList";
 import UserContext from "../UserContext";
 import CourseEditScreen from "./CourseEditScreen";
+import { firebase } from "../firebase";
 
 const Banner = ({ title }) => (
   <Text style={styles.bannerStyle}>{title || "[loading...]"}</Text>
 );
+
+const fixCourses = (json) => ({
+  ...json,
+  courses: Object.values(json.courses),
+});
 
 const ScheduleScreen = ({ navigation }) => {
   const user = useContext(UserContext);
@@ -22,14 +28,25 @@ const ScheduleScreen = ({ navigation }) => {
   const [schedule, setSchedule] = useState({ title: "", courses: [] });
 
   useEffect(() => {
-    const fetchSchedule = async () => {
-      const response = await fetch(url);
-      if (!response.ok) throw response;
-      const json = await response.json();
-      setSchedule(json);
+    const db = firebase.database().ref();
+    const handleData = (snap) => {
+      if (snap.val()) setSchedule(fixCourses(snap.val()));
     };
-    fetchSchedule();
+    db.on("value", handleData, (error) => console.log(error));
+    return () => {
+      db.off("value", handleData);
+    };
   }, []);
+
+  // useEffect(() => {
+  //   const fetchSchedule = async () => {
+  //     const response = await fetch(url);
+  //     if (!response.ok) throw response;
+  //     const json = await response.json();
+  //     setSchedule(json);
+  //   };
+  //   fetchSchedule();
+  // }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -42,6 +59,7 @@ const ScheduleScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: 420,
     alignItems: "center",
     justifyContent: "center",
     paddingTop: 20,

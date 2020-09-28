@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
   termSelector: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: 410,
     alignItems: "center",
   },
   termButton: {
